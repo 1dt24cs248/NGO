@@ -1,0 +1,23 @@
+body{
+    font-family: Arial;
+    background:#f4f7f4;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    color:green;
+}
+
+.card{
+    background:white;
+    width:70%;
+    margin:20px auto;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px gray;
+}
+
+.card h2{
+    color:#1b5e20;
+}
