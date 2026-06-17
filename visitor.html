@@ -1,0 +1,737 @@
+<%@ page import="java.sql.*" %>
+<%@ page import="com.ngo.util.DBConnection" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+String user = (String) session.getAttribute("visitorEmail");
+if (user == null) {
+    response.sendRedirect(request.getContextPath() + "/login.jsp");
+    return;
+}
+Connection con = DBConnection.getConnection();
+
+// Fetch visitor name
+String visitorName = user;
+PreparedStatement psName = con.prepareStatement("SELECT name FROM visitors WHERE email=?");
+psName.setString(1, user);
+ResultSet rsName = psName.executeQuery();
+if(rsName.next()) visitorName = rsName.getString("name");
+
+// Fetch visitor's approved volunteer status & notification
+String volunteerStatus = null;
+String volunteerTask = null;
+String notifMsg = null;
+PreparedStatement psVS = con.prepareStatement("SELECT status, task, notification FROM volunteers WHERE email=?");
+psVS.setString(1, user);
+ResultSet rsVS = psVS.executeQuery();
+if(rsVS.next()) {
+    volunteerStatus = rsVS.getString("status");
+    volunteerTask = rsVS.getString("task");
+    notifMsg = rsVS.getString("notification");
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitor Dashboard – HaritSeva  NGO Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root { --green:#1a6b3a; --accent:#f4a022; --dark:#0f2419; --light:#f0f7f2; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:#f5f7f5; }
+
+    /* HEADER */
+    .header {
+        background:var(--green); color:white;
+        padding:18px 6%; display:flex; justify-content:space-between; align-items:center;
+        position:sticky; top:0; z-index:100;
+        box-shadow:0 4px 20px rgba(0,0,0,0.2);
+    }
+    .logo { font-family:'DM Serif Display',serif; font-size:22px; color:white; display:flex; align-items:center; gap:10px; }
+    .header-right { display:flex; align-items:center; gap:16px; }
+    .header-right span { font-size:14px; opacity:0.9; }
+    .logout-btn {
+        background:var(--accent); color:var(--dark);
+        border:none; padding:8px 20px; border-radius:20px;
+        cursor:pointer; font-weight:700; font-size:14px;
+        font-family:'DM Sans',sans-serif; transition:all 0.3s;
+    }
+    .logout-btn:hover { background:#fbb03b; }
+
+    /* NOTIFICATION BANNER */
+    .notif-banner {
+        background:linear-gradient(135deg, #1a6b3a, #2d9e58);
+        color:white; padding:16px 6%;
+        display:flex; align-items:center; gap:14px;
+        font-size:15px;
+    }
+    .notif-banner .notif-icon { font-size:1.5rem; }
+
+    /* MAIN */
+    .main { max-width:1200px; margin:0 auto; padding:30px 20px; }
+
+    /* SECTION CARD */
+    .section-card {
+        background:white; border-radius:20px;
+        padding:32px; margin-bottom:28px;
+        box-shadow:0 4px 20px rgba(0,0,0,0.06);
+    }
+    .section-title {
+        font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--dark);
+        margin-bottom:6px;
+    }
+    .section-sub { color:#888; font-size:14px; margin-bottom:24px; }
+
+    /* SUCCESS / ERROR ALERTS */
+    .alert { padding:14px 18px; border-radius:12px; margin-bottom:20px; font-size:14px; display:flex; align-items:center; gap:10px; }
+    .alert-success { background:#f0fff4; border:1px solid #86efac; color:#166534; }
+    .alert-error { background:#fff0f0; border:1px solid #fca5a5; color:#991b1b; }
+
+    /* ACHIEVEMENT CARDS */
+    .achieve-grid {
+        display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+        gap:16px; margin-bottom:24px;
+    }
+    .achieve-card {
+        background:var(--light); border-radius:16px; padding:24px;
+        text-align:center; cursor:pointer; border:2px solid transparent;
+        transition:all 0.3s;
+    }
+    .achieve-card:hover, .achieve-card.active {
+        border-color:var(--green); background:#e8f5e9;
+        transform:translateY(-4px); box-shadow:0 10px 30px rgba(26,107,58,0.15);
+    }
+    .achieve-card .icon { font-size:2.5rem; margin-bottom:10px; }
+    .achieve-card h4 { color:var(--dark); font-size:15px; font-weight:700; }
+    .achieve-card p { color:#666; font-size:13px; margin-top:4px; }
+    .achieve-detail {
+        background:var(--light); border-radius:16px; padding:24px;
+        display:none; border-left:4px solid var(--green);
+    }
+    .achieve-detail.show { display:block; }
+    .achieve-detail h3 { color:var(--green); margin-bottom:10px; font-family:'DM Serif Display',serif; }
+    .achieve-detail p { color:#555; line-height:1.8; font-size:15px; }
+
+    /* EVENTS TABLE */
+    .events-list { display:flex; flex-direction:column; gap:12px; }
+    .event-item {
+        display:flex; justify-content:space-between; align-items:center;
+        background:var(--light); border-radius:14px; padding:18px 22px;
+        border-left:4px solid var(--accent);
+    }
+    .event-item .event-name { font-weight:700; color:var(--dark); font-size:15px; }
+    .event-item .event-meta { color:#888; font-size:13px; margin-top:4px; }
+    .event-badge {
+        background:var(--accent); color:var(--dark);
+        padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700;
+        white-space:nowrap;
+    }
+
+    /* VOLUNTEER DIRECTORY */
+    .filter-bar {
+        background:var(--light); border-radius:16px; padding:20px;
+        margin-bottom:24px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;
+    }
+    .filter-bar .fgroup { flex:1; min-width:180px; }
+    .filter-bar label { font-size:12px; font-weight:700; color:#555; display:block; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+    .filter-bar input, .filter-bar select {
+        width:100%; padding:11px 14px; border:2px solid #ddd;
+        border-radius:10px; font-size:14px; font-family:'DM Sans',sans-serif;
+        outline:none; transition:border-color 0.3s;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color:var(--green); }
+    .search-btn {
+        background:var(--green); color:white; border:none;
+        padding:11px 24px; border-radius:10px; font-size:14px;
+        font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;
+        transition:all 0.3s; align-self:flex-end;
+    }
+    .search-btn:hover { background:#2d9e58; }
+
+    /* NEED CHECKBOXES */
+    .need-filters { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+    .need-chip {
+        display:flex; align-items:center; gap:8px;
+        background:white; border:2px solid #ddd; border-radius:30px;
+        padding:8px 16px; cursor:pointer; font-size:13px; font-weight:600;
+        transition:all 0.3s; user-select:none;
+    }
+    .need-chip input { display:none; }
+    .need-chip.checked { background:var(--green); border-color:var(--green); color:white; }
+
+    /* VOLUNTEER TABLE */
+    .vol-table { width:100%; border-collapse:collapse; }
+    .vol-table th {
+        background:var(--dark); color:white;
+        padding:13px 16px; text-align:left; font-size:13px;
+        font-weight:600; letter-spacing:0.5px;
+    }
+    .vol-table th:first-child { border-radius:10px 0 0 0; }
+    .vol-table th:last-child { border-radius:0 10px 0 0; }
+    .vol-table td { padding:14px 16px; border-bottom:1px solid #f0f0f0; font-size:14px; }
+    .vol-table tr:hover td { background:#fafff8; }
+    .vol-table tr:last-child td { border-bottom:none; }
+    .need-tag {
+        display:inline-block; padding:4px 12px; border-radius:20px;
+        font-size:12px; font-weight:700; background:#e8f5e9; color:var(--green);
+    }
+    .no-results { text-align:center; padding:40px; color:#aaa; font-size:15px; }
+
+    /* DONATION */
+    .donation-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .qr-box {
+        background:var(--light); border-radius:16px; padding:28px; text-align:center;
+        border:2px dashed #c8e6c9;
+    }
+    .qr-box img { width:200px; border-radius:12px; border:4px solid white; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+    .qr-box h4 { color:var(--dark); margin:16px 0 6px; font-size:16px; }
+    .qr-box p { color:#888; font-size:13px; }
+    .manual-form { display:flex; flex-direction:column; justify-content:center; }
+    .manual-form h4 { color:var(--dark); font-size:16px; margin-bottom:18px; font-family:'DM Serif Display',serif; }
+    .manual-form input {
+        padding:13px 16px; border:2px solid #ddd; border-radius:12px;
+        font-size:15px; margin-bottom:14px; width:100%;
+        font-family:'DM Sans',sans-serif; outline:none;
+        transition:border-color 0.3s;
+    }
+    .manual-form input:focus { border-color:var(--green); }
+    .donate-btn {
+        background:var(--green); color:white; border:none; padding:14px;
+        border-radius:12px; font-size:16px; font-weight:700; cursor:pointer;
+        font-family:'DM Sans',sans-serif; width:100%; transition:all 0.3s;
+    }
+    .donate-btn:hover { background:#2d9e58; transform:translateY(-2px); box-shadow:0 8px 24px rgba(26,107,58,0.3); }
+
+    /* VOLUNTEER APPLY */
+    .apply-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .form-field label { font-size:13px; font-weight:700; color:#555; display:block; margin-bottom:6px; }
+    .form-field input, .form-field select {
+        width:100%; padding:12px 14px; border:2px solid #ddd; border-radius:10px;
+        font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.3s;
+    }
+    .form-field input:focus, .form-field select:focus { border-color:var(--green); }
+    .apply-btn {
+        background:var(--green); color:white; border:none; padding:13px 30px;
+        border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;
+        font-family:'DM Sans',sans-serif; transition:all 0.3s;
+    }
+    .apply-btn:hover { background:#2d9e58; }
+
+    /* STATUS BADGE */
+    .status-badge {
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 18px; border-radius:20px; font-weight:700; font-size:14px;
+    }
+    .status-approved { background:#dcfce7; color:#166534; }
+    .status-pending { background:#fef9c3; color:#854d0e; }
+    .status-rejected { background:#fee2e2; color:#991b1b; }
+
+    /* QUICK LINKS */
+    .quick-links { display:flex; gap:14px; flex-wrap:wrap; }
+    .quick-link {
+        flex:1; min-width:160px; background:var(--light); border-radius:14px;
+        padding:20px; text-decoration:none; text-align:center;
+        border:2px solid transparent; transition:all 0.3s; color:var(--dark);
+    }
+    .quick-link:hover { border-color:var(--green); background:#e8f5e9; transform:translateY(-3px); }
+    .quick-link .ql-icon { font-size:2rem; margin-bottom:8px; }
+    .quick-link h4 { font-size:14px; font-weight:700; }
+
+    /* PARTNERS */
+    .partner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+    .partner-card {
+        background:var(--light); border-radius:14px; padding:20px;
+        text-align:center; border-top:3px solid var(--green);
+    }
+    .partner-card h4 { color:var(--dark); font-size:15px; margin-bottom:6px; }
+    .partner-card p { color:#888; font-size:13px; }
+
+
+    /* FINANCE TRANSPARENCY */
+    .finance-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin:20px 0 28px; }
+    .finance-card {
+        border-radius:18px; padding:26px; text-align:center;
+        box-shadow:0 6px 20px rgba(0,0,0,0.07);
+    }
+    .finance-card.donations { background:linear-gradient(135deg,#f0fff4,#dcfce7); border-top:4px solid #16a34a; }
+    .finance-card.expenses  { background:linear-gradient(135deg,#fff5f5,#fee2e2); border-top:4px solid #dc2626; }
+    .finance-card.balance   { background:linear-gradient(135deg,#fffbeb,#fef3c7); border-top:4px solid #f59e0b; }
+    .finance-card .fc-icon  { font-size:2rem; margin-bottom:10px; }
+    .finance-card .fc-label { font-size:12px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:1.5px; }
+    .finance-card .fc-value { font-family:'DM Serif Display',serif; font-size:2rem; margin:8px 0 4px; }
+    .finance-card.donations .fc-value { color:#166534; }
+    .finance-card.expenses  .fc-value { color:#991b1b; }
+    .finance-card.balance   .fc-value { color:#92400e; }
+    .finance-card .fc-sub   { font-size:12px; color:#888; }
+
+    /* EXPENSE BARS */
+    .spend-breakdown { background:var(--light); border-radius:16px; padding:28px; margin-top:4px; }
+    .spend-breakdown h4 { font-family:'DM Serif Display',serif; font-size:1.1rem; color:var(--dark); margin-bottom:18px; }
+    .expense-row { margin-bottom:16px; }
+    .expense-row .er-top { display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:6px; color:#444; }
+    .expense-row .er-bar-bg { height:9px; background:#e5e7eb; border-radius:10px; overflow:hidden; }
+    .expense-row .er-bar { height:100%; border-radius:10px; background:var(--green); transition:width 1.2s ease; width:0; }
+
+    @media(max-width:768px) {
+        .donation-grid, .apply-grid { grid-template-columns:1fr; }
+        .filter-bar { flex-direction:column; }
+    }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="logo"><i class="fas fa-leaf" style="color:#f4a022;"></i> HaritSeva NGO  Portal</div>
+    <div class="header-right">
+        <span>👋 Welcome, <strong><%= visitorName %></strong></span>
+        <button class="logout-btn" onclick="window.location='<%=request.getContextPath()%>/logout'">Logout</button>
+    </div>
+</div>
+
+<!-- NOTIFICATION BANNER (if volunteer has notification) -->
+<% if(notifMsg != null && !notifMsg.isEmpty()) { %>
+<div class="notif-banner">
+    <div class="notif-icon">🔔</div>
+    <div><strong>Volunteer Update:</strong> <%= notifMsg %></div>
+</div>
+<% } %>
+
+<div class="main">
+
+<!-- ALERTS -->
+<% if("donated".equals(request.getParameter("success"))) { %>
+    <div class="alert alert-success"><i class="fas fa-check-circle"></i> <strong>Thank you for your generous donation!</strong> Your contribution has been recorded and will make a real difference.</div>
+<% } else if("volunteer".equals(request.getParameter("success"))) { %>
+    <div class="alert alert-success"><i class="fas fa-check-circle"></i> <strong>Volunteer application submitted!</strong> The admin will review your request and you'll be notified here.</div>
+<% } else if(request.getParameter("error") != null) { %>
+    <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Something went wrong. Please try again.</div>
+<% } %>
+
+<!-- ===== ACHIEVEMENTS ===== -->
+<div class="section-card">
+    <div class="section-title">🏆 Our Achievements</div>
+    <p class="section-sub">Click any category to learn more about our impact</p>
+    <div class="achieve-grid">
+        <div class="achieve-card" onclick="showAchieve('food', this)">
+            <div class="icon">🍛</div>
+            <h4>Free Food</h4>
+            <p>1,200+ meals served</p>
+        </div>
+        <div class="achieve-card" onclick="showAchieve('energy', this)">
+            <div class="icon">☀️</div>
+            <h4>Clean Energy</h4>
+            <p>40+ exhibitions held</p>
+        </div>
+        <div class="achieve-card" onclick="showAchieve('edu', this)">
+            <div class="icon">📚</div>
+            <h4>Education</h4>
+            <p>300+ children supported</p>
+        </div>
+        <div class="achieve-card" onclick="showAchieve('cow', this)">
+            <div class="icon">🐄</div>
+            <h4>Goshala</h4>
+            <p>50+ cattle cared for</p>
+        </div>
+        <div class="achieve-card" onclick="showAchieve('env', this)">
+            <div class="icon">🌱</div>
+            <h4>Environment</h4>
+            <p>500+ trees planted</p>
+        </div>
+        <div class="achieve-card" onclick="showAchieve('old', this)">
+            <div class="icon">👴</div>
+            <h4>Old Age Care</h4>
+            <p>80+ elders supported</p>
+        </div>
+    </div>
+    <div class="achieve-detail" id="achieve-detail">
+        <h3 id="achieve-title"></h3>
+        <p id="achieve-text"></p>
+    </div>
+</div>
+
+<!-- ===== UPCOMING EVENTS ===== -->
+<div class="section-card">
+    <div class="section-title">📅 Upcoming Events</div>
+    <p class="section-sub">Join us at these community events</p>
+    <div class="events-list">
+    <%
+    PreparedStatement psE = con.prepareStatement("SELECT * FROM events ORDER BY id DESC");
+    ResultSet rsE = psE.executeQuery();
+    boolean hasEvents = false;
+    while(rsE.next()) {
+        hasEvents = true;
+    %>
+        <div class="event-item">
+            <div>
+                <div class="event-name"><%= rsE.getString("name") %></div>
+                <div class="event-meta"><i class="fas fa-calendar"></i> <%= rsE.getString("date") %> &nbsp;|&nbsp; <i class="fas fa-map-marker-alt"></i> <%= rsE.getString("location") %></div>
+            </div>
+            <span class="event-badge">Upcoming</span>
+        </div>
+    <% } %>
+    <% if(!hasEvents) { %>
+        <div style="text-align:center;padding:30px;color:#aaa;">No upcoming events at the moment. Check back soon!</div>
+    <% } %>
+    </div>
+</div>
+
+<!-- ===== VOLUNTEER DIRECTORY ===== -->
+<div class="section-card">
+    <div class="section-title">🤝 Volunteer Directory</div>
+    <p class="section-sub">Browse approved volunteers by location and area of service. Contact them for support.</p>
+
+    <!-- FILTER BAR -->
+    <form method="get" id="searchForm">
+        <div class="filter-bar">
+            <div class="fgroup">
+                <label>Search by Location</label>
+                <input type="text" name="searchLoc" placeholder="e.g. Bengaluru, Kanakapura" value="<%= request.getParameter("searchLoc") != null ? request.getParameter("searchLoc") : "" %>">
+            </div>
+            <div class="fgroup">
+                <label>Area of Service</label>
+                <select name="searchNeed">
+                    <option value="">All Services</option>
+                    <option value="Food" <%= "Food".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>🍛 Food</option>
+                    <option value="Education" <%= "Education".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>📚 Education</option>
+                    <option value="Goshala" <%= "Goshala".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>🐄 Goshala</option>
+                    <option value="Child Care" <%= "Child Care".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>👶 Child Care</option>
+                    <option value="Old Age Home" <%= "Old Age Home".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>👴 Old Age Home</option>
+                    <option value="Environment Issues" <%= "Environment Issues".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>🌱 Environment</option>
+                    <option value="Clean Energy" <%= "Clean Energy".equals(request.getParameter("searchNeed")) ? "selected" : "" %>>☀️ Clean Energy</option>
+                </select>
+            </div>
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i> Search</button>
+            <a href="visitor.jsp" style="text-decoration:none;"><button type="button" class="search-btn" style="background:#888;">Clear</button></a>
+        </div>
+    </form>
+
+    <!-- NEED QUICK FILTER CHIPS -->
+    <div class="need-filters">
+        <span style="font-size:13px;font-weight:700;color:#555;align-self:center;">Quick filter:</span>
+        <% String[] needs = {"Food","Education","Goshala","Child Care","Old Age Home","Environment Issues","Clean Energy"}; %>
+        <% String[] icons = {"🍛","📚","🐄","👶","👴","🌱","☀️"}; %>
+        <% for(int i=0;i<needs.length;i++) { %>
+        <label class="need-chip <%= needs[i].equals(request.getParameter("searchNeed")) ? "checked" : "" %>" onclick="quickFilter('<%= needs[i] %>')">
+            <%= icons[i] %> <%= needs[i] %>
+        </label>
+        <% } %>
+    </div>
+
+    <!-- VOLUNTEER TABLE -->
+    <div style="overflow-x:auto;">
+    <table class="vol-table">
+        <tr>
+            <th>Volunteer Name</th>
+            <th>Role / Service Area</th>
+            <th>Location</th>
+            <th>Mobile</th>
+            <th>Status</th>
+        </tr>
+    <%
+    String searchLoc = request.getParameter("searchLoc");
+    String searchNeed = request.getParameter("searchNeed");
+
+    StringBuilder volQuery = new StringBuilder(
+        "SELECT v.name, v.role, v.mobile, v.status, v.location, vis.name as vname " +
+        "FROM volunteers v LEFT JOIN visitors vis ON v.email = vis.email " +
+        "WHERE v.status='APPROVED'"
+    );
+    if(searchNeed != null && !searchNeed.isEmpty()) {
+        volQuery.append(" AND v.role LIKE ?");
+    }
+    if(searchLoc != null && !searchLoc.isEmpty()) {
+        volQuery.append(" AND v.location LIKE ?");
+    }
+
+    PreparedStatement psVol = con.prepareStatement(volQuery.toString());
+    int paramIdx = 1;
+    if(searchNeed != null && !searchNeed.isEmpty()) {
+        psVol.setString(paramIdx++, "%" + searchNeed + "%");
+    }
+    if(searchLoc != null && !searchLoc.isEmpty()) {
+        psVol.setString(paramIdx++, "%" + searchLoc + "%");
+    }
+
+    ResultSet rsVol = psVol.executeQuery();
+
+    java.util.List<String[]> volList = new java.util.ArrayList<>();
+    while(rsVol.next()) {
+        volList.add(new String[]{
+            rsVol.getString("vname") != null ? rsVol.getString("vname") : rsVol.getString("name"),
+            rsVol.getString("role"),
+            rsVol.getString("mobile"),
+            rsVol.getString("status"),
+            rsVol.getString("location") != null ? rsVol.getString("location") : "—"
+        });
+    }
+
+    if(volList.isEmpty()) {
+    %>
+        <tr><td colspan="5" class="no-results">No approved volunteers found for this search. Try different filters.</td></tr>
+    <% } else {
+        for(String[] vol : volList) {
+    %>
+        <tr>
+            <td><strong><%= vol[0] %></strong></td>
+            <td><span class="need-tag"><%= vol[1] %></span></td>
+            <td><i class="fas fa-map-marker-alt" style="color:#d01717;margin-right:5px;"></i><%= vol[4] %></td>
+            <td><a href="tel:<%= vol[2] %>" style="color:var(--green);font-weight:700;"><i class="fas fa-phone"></i> <%= vol[2] %></a></td>
+            <td><span style="color:#166534;font-weight:700;">✓ Active</span></td>
+        </tr>
+    <% } } %>
+    </table>
+    </div>
+</div>
+
+<!-- ===== DONATION ===== -->
+<div class="section-card">
+    <div class="section-title">💛 Make a Donation</div>
+    <p class="section-sub">Your contribution directly funds food, education, and clean energy initiatives</p>
+
+    <div class="donation-grid">
+        <div class="qr-box">
+            <p style="font-size:13px;color:#888;margin-bottom:12px;">Scan & Pay via UPI</p>
+            <img src="Images/WhatsApp Image 2026-04-04 at 11.00.35 PM.jpeg" alt="UPI QR Code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=shailu@upi'">
+            <h4>UPI ID: shailu@upi</h4>
+            <p>Scan using any UPI app (GPay, PhonePe, Paytm)</p>
+        </div>
+        <div class="manual-form">
+            <h4>Or enter donation amount manually:</h4>
+            <form action="<%=request.getContextPath()%>/donate" method="post">
+                <input type="number" name="amount" placeholder="Enter amount in ₹ (e.g. 500)" min="1" required>
+                <button type="submit" class="donate-btn">💚 Confirm Donation</button>
+            </form>
+            <p style="color:#888;font-size:13px;margin-top:12px;text-align:center;">All donations are recorded and shown in the admin dashboard for full transparency.</p>
+
+            <!-- Quick amount buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                <% int[] amounts = {100, 500, 1000, 2000}; %>
+                <% for(int amt : amounts) { %>
+                <button type="button" onclick="setAmount(<%= amt %>)"
+                    style="flex:1;padding:10px;border:2px solid var(--green);border-radius:10px;background:white;color:var(--green);font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.3s;"
+                    onmouseover="this.style.background='var(--green)';this.style.color='white';"
+                    onmouseout="this.style.background='white';this.style.color='var(--green)';">
+                    ₹<%= amt %>
+                </button>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== BECOME A VOLUNTEER ===== -->
+<div class="section-card">
+    <div class="section-title">🙋 Become a Volunteer</div>
+    <p class="section-sub">Apply to volunteer with HaritSeva and be the change in your community</p>
+
+    <% if(volunteerStatus != null) { %>
+        <div style="margin-bottom:20px;">
+            <p style="font-weight:700;color:#444;margin-bottom:10px;">Your Volunteer Status:</p>
+            <% if("APPROVED".equals(volunteerStatus)) { %>
+                <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> Approved Volunteer</span>
+                <% if(volunteerTask != null && !volunteerTask.isEmpty()) { %>
+                    <p style="margin-top:14px;color:#166534;background:#dcfce7;padding:12px 16px;border-radius:10px;font-size:14px;">
+                        <strong>Your Assigned Task:</strong> <%= volunteerTask %>
+                    </p>
+                <% } %>
+            <% } else if("PENDING".equals(volunteerStatus)) { %>
+                <span class="status-badge status-pending"><i class="fas fa-clock"></i> Application Pending Review</span>
+                <p style="margin-top:10px;color:#888;font-size:14px;">Your application is being reviewed by the admin. You'll be notified here once approved.</p>
+            <% } else if("REJECTED".equals(volunteerStatus)) { %>
+                <span class="status-badge status-rejected"><i class="fas fa-times-circle"></i> Application Not Approved</span>
+            <% } %>
+        </div>
+    <% } else { %>
+    <form action="<%=request.getContextPath()%>/volunteer" method="post">
+        <div class="apply-grid">
+            <div class="form-field">
+                <label>Area of Service</label>
+                <select name="role" required>
+                    <option value="">Select service area</option>
+                    <option value="Food Distribution">🍛 Food Distribution</option>
+                    <option value="Education">📚 Education Support</option>
+                    <option value="Goshala">🐄 Goshala Services</option>
+                    <option value="Child Care">👶 Child Care</option>
+                    <option value="Old Age Home">👴 Old Age Home</option>
+                    <option value="Environment Issues">🌱 Environmental Care</option>
+                    <option value="Clean Energy">☀️ Clean Energy Awareness</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+            <div class="form-field">
+                <label>Your Location / Area</label>
+                <input type="text" name="location" placeholder="e.g. Bengaluru, Kanakapura" required>
+            </div>
+        </div>
+        <button type="submit" class="apply-btn"><i class="fas fa-hands-helping"></i> Submit Application</button>
+    </form>
+    <% } %>
+</div>
+
+<!-- ===== FINANCE TRANSPARENCY ===== -->
+<div class="section-card">
+    <div class="section-title">💰 Fund Transparency</div>
+    <p class="section-sub">Live view of how donations are collected and distributed — updated in real-time</p>
+
+    <!-- 3 STAT CARDS -->
+    <div class="finance-grid">
+        <div class="finance-card donations">
+            <div class="fc-icon">💚</div>
+            <div class="fc-label">Total Donations</div>
+            <%
+            int fDonation = 0, fExpense = 0, fBalance = 0;
+            try {
+                PreparedStatement fpd = con.prepareStatement("SELECT COALESCE(SUM(amount),0) FROM donations");
+                ResultSet rfd = fpd.executeQuery();
+                if(rfd.next()) fDonation = rfd.getInt(1);
+                PreparedStatement fpe = con.prepareStatement("SELECT COALESCE(SUM(amount),0) FROM expenses");
+                ResultSet rfe = fpe.executeQuery();
+                if(rfe.next()) fExpense = rfe.getInt(1);
+                fBalance = fDonation - fExpense;
+            } catch(Exception fe) { fe.printStackTrace(); }
+            %>
+            <div class="fc-value">₹<%= fDonation %></div>
+            <div class="fc-sub">Received from donors</div>
+        </div>
+        <div class="finance-card expenses">
+            <div class="fc-icon">💸</div>
+            <div class="fc-label">Total Spent</div>
+            <div class="fc-value">₹<%= fExpense %></div>
+            <div class="fc-sub">Used for community welfare</div>
+        </div>
+        <div class="finance-card balance">
+            <div class="fc-icon">🏦</div>
+            <div class="fc-label">Remaining Balance</div>
+            <div class="fc-value" style="color:<%= fBalance < 0 ? "#991b1b" : "#92400e" %>;">₹<%= fBalance %></div>
+            <div class="fc-sub">Available for future use</div>
+        </div>
+    </div>
+
+    <!-- EXPENSE BREAKDOWN -->
+    <div class="spend-breakdown">
+        <h4>📊 How Funds Are Distributed</h4>
+        <%
+        try {
+            PreparedStatement bps = con.prepareStatement(
+                "SELECT reason, amount FROM expenses ORDER BY amount DESC"
+            );
+            ResultSet brs = bps.executeQuery();
+            while(brs.next()) {
+                int bamt = brs.getInt("amount");
+                int bpct = (fExpense > 0) ? (int)((bamt * 100.0) / fExpense) : 0;
+        %>
+        <div class="expense-row">
+            <div class="er-top">
+                <span><%= brs.getString("reason") %></span>
+                <span style="color:var(--green);">₹<%= bamt %> &nbsp;(<%= bpct %>%)</span>
+            </div>
+            <div class="er-bar-bg">
+                <div class="er-bar" data-width="<%= bpct %>"></div>
+            </div>
+        </div>
+        <%
+            }
+        } catch(Exception be) { be.printStackTrace(); }
+        %>
+        <p style="margin-top:16px;font-size:12px;color:#aaa;text-align:right;">
+            <i class="fas fa-lock" style="margin-right:4px;"></i>Live data · Updated on every page load
+        </p>
+    </div>
+</div>
+
+<!-- ===== QUICK LINKS ===== -->
+<div class="section-card">
+    <div class="section-title">🔗 Quick Actions</div>
+    <p class="section-sub" style="margin-bottom:20px;">Access other features quickly</p>
+    <div class="quick-links">
+        <a href="helprequest.jsp" class="quick-link">
+            <div class="ql-icon">🆘</div>
+            <h4>Request Help</h4>
+        </a>
+        <a href="feedback.jsp" class="quick-link">
+            <div class="ql-icon">💬</div>
+            <h4>Give Feedback</h4>
+        </a>
+        <a href="#donate" class="quick-link" onclick="document.querySelector('.donation-grid').scrollIntoView({behavior:'smooth'});return false;">
+            <div class="ql-icon">💛</div>
+            <h4>Donate Again</h4>
+        </a>
+    </div>
+</div>
+
+<!-- ===== PARTNERS ===== -->
+<div class="section-card">
+    <div class="section-title">🤝 Our Partner Organizations</div>
+    <p class="section-sub">Organizations that support our mission</p>
+    <div class="partner-grid">
+    <%
+    PreparedStatement psP = con.prepareStatement("SELECT * FROM partners");
+    ResultSet rsP = psP.executeQuery();
+    boolean hasPartners = false;
+    while(rsP.next()) {
+        hasPartners = true;
+    %>
+        <div class="partner-card">
+            <h4><%= rsP.getString("name") %></h4>
+            <p><%= rsP.getString("type") %></p>
+            <p style="color:var(--green);font-weight:600;font-size:13px;margin-top:8px;"><%= rsP.getString("contact") %></p>
+        </div>
+    <% } %>
+    <% if(!hasPartners) { %>
+        <p style="color:#aaa;">No partners listed yet.</p>
+    <% } %>
+    </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const achieveData = {
+    food: { title: "🍛 Free Food Distribution", text: "We have served over 1,200 nutritious meals to underprivileged families, children, and elderly citizens across Bengaluru and surrounding regions. Our dedicated food distribution team operates daily with support from generous donors and volunteers." },
+    energy: { title: "☀️ Clean Energy Exhibitions", text: "HaritSeva has conducted 40+ clean energy exhibitions and community workshops, educating over 5,000 citizens about solar energy, biogas, wind power, and energy-efficient practices. We believe a greener future starts with awareness." },
+    edu: { title: "📚 Education Support", text: "Over 300 underprivileged children have received free tutoring, stationery kits, and educational support through our education program. We believe every child deserves the right to learn and grow." },
+    cow: { title: "🐄 Goshala Services", text: "Our Goshala program provides care, shelter, and medical attention to over 50 indigenous cattle. We believe in protecting all living beings as part of our commitment to compassionate service." },
+    env: { title: "🌱 Environmental Care", text: "We have planted 500+ trees across urban and rural areas, conducted clean-up drives, and partnered with local authorities for environmental restoration projects that benefit entire communities." },
+    old: { title: "👴 Old Age Home Support", text: "Over 80 elderly citizens receive regular welfare visits, healthcare assistance, and companionship through our old age support program. We ensure no senior citizen feels alone or forgotten." }
+};
+
+function showAchieve(type, el) {
+    document.querySelectorAll('.achieve-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const detail = document.getElementById('achieve-detail');
+    document.getElementById('achieve-title').textContent = achieveData[type].title;
+    document.getElementById('achieve-text').textContent = achieveData[type].text;
+    detail.classList.add('show');
+    detail.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function setAmount(amt) {
+    document.querySelector('input[name="amount"]').value = amt;
+}
+
+function quickFilter(need) {
+    const form = document.getElementById('searchForm');
+    const select = form.querySelector('select[name="searchNeed"]');
+    select.value = need;
+    form.submit();
+}
+
+// Animate finance progress bars on page load
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        document.querySelectorAll('.er-bar').forEach(bar => {
+            const w = bar.getAttribute('data-width') || '0';
+            bar.style.width = w + '%';
+        });
+    }, 400);
+});
+</script>
+
+</body>
+</html>
