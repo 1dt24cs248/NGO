@@ -16,7 +16,8 @@ psName.setString(1, user);
 ResultSet rsName = psName.executeQuery();
 if(rsName.next()) visitorName = rsName.getString("name");
 
-// Fetch visitor's approved volunteer status & notification
+
+
 String volunteerStatus = null;
 String volunteerTask = null;
 String notifMsg = null;
@@ -34,7 +35,7 @@ if(rsVS.next()) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visitor Dashboard – HaritSeva  NGO Portal</title>
+<title>Visitor Dashboard – HaritSeva  NGO Portal and management </title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -316,32 +317,32 @@ if(rsVS.next()) {
     <p class="section-sub">Click any category to learn more about our impact</p>
     <div class="achieve-grid">
         <div class="achieve-card" onclick="showAchieve('food', this)">
-            <div class="icon">🍛</div>
+            <div class="icon"></div>
             <h4>Free Food</h4>
             <p>1,200+ meals served</p>
         </div>
         <div class="achieve-card" onclick="showAchieve('energy', this)">
-            <div class="icon">☀️</div>
+            <div class="icon"></div>
             <h4>Clean Energy</h4>
             <p>40+ exhibitions held</p>
         </div>
         <div class="achieve-card" onclick="showAchieve('edu', this)">
-            <div class="icon">📚</div>
+            <div class="icon"></div>
             <h4>Education</h4>
             <p>300+ children supported</p>
         </div>
         <div class="achieve-card" onclick="showAchieve('cow', this)">
-            <div class="icon">🐄</div>
+            <div class="icon"></div>
             <h4>Goshala</h4>
             <p>50+ cattle cared for</p>
         </div>
         <div class="achieve-card" onclick="showAchieve('env', this)">
-            <div class="icon">🌱</div>
+            <div class="icon"></div>
             <h4>Environment</h4>
             <p>500+ trees planted</p>
         </div>
         <div class="achieve-card" onclick="showAchieve('old', this)">
-            <div class="icon">👴</div>
+            <div class="icon"></div>
             <h4>Old Age Care</h4>
             <p>80+ elders supported</p>
         </div>
@@ -503,6 +504,7 @@ if(rsVS.next()) {
             <form action="<%=request.getContextPath()%>/donate" method="post">
                 <input type="number" name="amount" placeholder="Enter amount in ₹ (e.g. 500)" min="1" required>
                 <button type="submit" class="donate-btn">💚 Confirm Donation</button>
+                <p> Thank you for your support!</p>
             </form>
             <p style="color:#888;font-size:13px;margin-top:12px;text-align:center;">All donations are recorded and shown in the admin dashboard for full transparency.</p>
 
