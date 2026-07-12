@@ -1,36 +1,94 @@
-# NGO Volunteer Application Form
+# NGO Website
+
+A simple and responsive NGO website developed using **HTML5, CSS3, and JavaScript**. This project aims to provide information about the NGO, spread awareness, and allow volunteers to apply online.
+
+---
 
 ## Project Overview
-This project is a simple NGO Volunteer Application Form built using HTML and CSS. It allows users to apply as volunteers by filling out their personal information and selecting their area of interest.
+
+The NGO Website is designed to:
+
+- Provide information about the organization.
+- Display awareness campaigns.
+- Allow users to apply as volunteers.
+- Create a clean and responsive user experience.
+
+---
 
 ## Features
-- User-friendly application form
-- Responsive design
-- Personal information collection
-- Area of interest selection
-- Motivation statement submission
-- Simple and clean interface
+
+- Responsive Home Page
+- Volunteer Application Form
+- NGO Awareness Page
+- Announcement Section
+- Clean User Interface
+- Mobile-Friendly Design
+
+---
 
 ## Technologies Used
+
 - HTML5
 - CSS3
+- JavaScript
+
+---
 
 ## Project Structure
 
 ```
-NGO-Application-Form/
+NGO/
 │
 ├── index.html
-└── README.md
+├── apply.html
+├── awarness.html
+├── awarness.css
+├── theme.css
+├── announcment.js
+├── Images/
+├── README.md
+└── CONTRIBUTING.md
 ```
+
+---
+
+## Installation
+
+### Clone the repository
+
+```bash
+git clone https://github.com/1dt24cs248/NGO.git
+```
+
+Move into the project folder:
+
+```bash
+cd NGO
+```
+
+---
 
 ## How to Run
 
-1. Download or clone the project.
-2. Open the project folder.
-3. Double-click `index.html` or open it in any web browser.
+Open the project folder.
 
-## Form Fields
+Open **index.html** in any web browser.
+
+Or use the VS Code Live Server extension.
+
+---
+
+## Pages
+
+### Home Page
+
+- NGO Introduction
+- Navigation Bar
+- Awareness Information
+
+### Volunteer Application
+
+Users can submit:
 
 - Full Name
 - Email Address
@@ -39,24 +97,56 @@ NGO-Application-Form/
 - Gender
 - Address
 - Area of Interest
-- Reason for Joining the NGO
+- Reason for Joining
+
+### Awareness Page
+
+Displays NGO awareness content and initiatives.
+
+---
+
+## Repository Workflow
+
+```text
+Clone Repository
+       ↓
+Create Branch
+       ↓
+Make Changes
+       ↓
+Commit Changes
+       ↓
+Push Branch
+       ↓
+Create Pull Request
+       ↓
+Merge Pull Request
+```
+
+---
 
 ## Future Enhancements
 
-- Form validation using JavaScript
-- Backend integration with PHP, Node.js, or Django
-- Database storage for applications
-- Email notifications
-- Admin dashboard for managing applications
+- User Authentication
+- Online Donation System
+- Admin Dashboard
+- Backend Integration (Django / PHP / Node.js)
+- Database Support
+- Email Notifications
+- Contact Form
+- Volunteer Management System
 
-## Purpose
+---
 
-The purpose of this project is to provide NGOs with a simple platform to collect volunteer applications efficiently.
+## Contributors
 
-## Author
+- Shailendra Kumar
+- Sneha 
+- Shreyas
+- Sulaksha
 
-Shree Ganesh
+---
 
 ## License
 
-This project is open-source and available for educational purposes.
+This project is developed for educational purposes and is open source.
