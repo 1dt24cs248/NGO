@@ -7,3 +7,47 @@ let announcements = [
 for(let i=0;i<announcements.length;i++){
     console.log(announcements[i]);
 }
+// Hamburger Menu
+const hamburger = document.getElementById("hamburger");
+const sideMenu = document.getElementById("sideMenu");
+const closeMenu = document.getElementById("closeMenu");
+
+if (hamburger) {
+    hamburger.onclick = () => {
+        sideMenu.style.right = "0";
+    };
+}
+
+if (closeMenu) {
+    closeMenu.onclick = () => {
+        sideMenu.style.right = "-100%";
+    };
+}
+
+// Smooth Scroll
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        document.querySelector(this.getAttribute("href")).scrollIntoView({
+            behavior: "smooth"
+        });
+
+        if (sideMenu) {
+            sideMenu.style.right = "-100%";
+        }
+    });
+});
+
+// Header Shadow
+const header = document.getElementById("header");
+
+window.addEventListener("scroll", () => {
+
+    if (window.scrollY > 50) {
+        header.style.boxShadow = "0 5px 20px rgba(0,0,0,.15)";
+    } else {
+        header.style.boxShadow = "none";
+    }
+
+});
