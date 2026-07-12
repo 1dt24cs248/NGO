@@ -1,0 +1,136 @@
+<%@ page import="java.sql.*" %>
+<%@ page import="com.ngo.util.DBConnection" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+String admin = (String) session.getAttribute("admin");
+if (admin == null) {
+    response.sendRedirect(request.getContextPath() + "/adminLogin.jsp");
+    return;
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transport – HaritSeva Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root { --green:#1a6b3a; --accent:#f4a022; --dark:#0f2419; --light:#f0f7f2; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:#f4f6f4; min-height:100vh; }
+
+    .topbar { background:var(--dark); color:white; padding:18px 6%; display:flex; justify-content:space-between; align-items:center; }
+    .topbar-logo { font-family:'DM Serif Display',serif; font-size:20px; color:var(--accent); display:flex; align-items:center; gap:10px; }
+    .topbar-right { display:flex; gap:14px; }
+    .topbar-right a { color:#bbb; text-decoration:none; font-size:14px; font-weight:600; padding:8px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); transition:all 0.3s; }
+    .topbar-right a:hover { background:rgba(255,255,255,0.1); color:white; }
+    .topbar-right a.back { background:var(--green); color:white; border-color:var(--green); }
+
+    .main { max-width:1000px; margin:40px auto; padding:0 20px; }
+    .page-title { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--dark); margin-bottom:6px; }
+    .page-sub { color:#888; font-size:14px; margin-bottom:30px; }
+
+    .card { background:white; border-radius:20px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:28px; }
+    .card h3 { font-family:'DM Serif Display',serif; font-size:1.2rem; color:var(--dark); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:14px; align-items:flex-end; }
+    .fg label { display:block; font-size:12px; font-weight:700; color:#555; margin-bottom:7px; text-transform:uppercase; letter-spacing:1px; }
+    .fg input { width:100%; padding:12px 14px; border:2px solid #e0e0e0; border-radius:10px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.3s; }
+    .fg input:focus { border-color:var(--green); }
+    .add-btn { background:var(--green); color:white; border:none; padding:12px 22px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.3s; white-space:nowrap; }
+    .add-btn:hover { background:#2d9e58; }
+
+    .alert-success { background:#f0fff4; border:1px solid #86efac; color:#166534; padding:14px 18px; border-radius:12px; margin-bottom:20px; font-size:14px; }
+
+    .data-table { width:100%; border-collapse:collapse; }
+    .data-table th { background:var(--dark); color:white; padding:13px 16px; text-align:left; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+    .data-table th:first-child { border-radius:10px 0 0 0; }
+    .data-table th:last-child { border-radius:0 10px 0 0; }
+    .data-table td { padding:14px 16px; border-bottom:1px solid #f0f0f0; font-size:14px; }
+    .data-table tr:hover td { background:#fafff8; }
+    .data-table tr:last-child td { border-bottom:none; }
+
+    .vehicle-tag { background:#e0f2fe; color:#0369a1; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+    .no-data { text-align:center; padding:40px; color:#aaa; }
+
+    @media(max-width:768px) { .form-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-logo"><i class="fas fa-leaf"></i> HaritSeva Admin</div>
+    <div class="topbar-right">
+        <a href="admin.jsp" class="back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="<%=request.getContextPath()%>/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="main">
+    <div class="page-title">🚌 Transport Management</div>
+    <p class="page-sub">Assign and track vehicles for NGO events</p>
+
+    <% if(request.getParameter("success") != null) { %>
+        <div class="alert-success"><i class="fas fa-check-circle"></i> Transport entry added successfully!</div>
+    <% } %>
+
+    <!-- ADD TRANSPORT FORM -->
+    <div class="card">
+        <h3><i class="fas fa-bus" style="color:var(--green);"></i> Add Transport Entry</h3>
+        <form action="<%=request.getContextPath()%>/transport" method="post">
+            <div class="form-grid">
+                <div class="fg">
+                    <label>Vehicle Name</label>
+                    <input type="text" name="vehicle" placeholder="e.g. Bus, Van, Tempo" required>
+                </div>
+                <div class="fg">
+                    <label>Event Name</label>
+                    <input type="text" name="event" placeholder="e.g. Food Drive" required>
+                </div>
+                <div class="fg">
+                    <label>Date</label>
+                    <input type="date" name="date" required>
+                </div>
+                <div class="fg">
+                    <label>Location</label>
+                    <input type="text" name="location" placeholder="e.g. Kanakapura" required>
+                </div>
+                <button type="submit" class="add-btn"><i class="fas fa-plus"></i> Add</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- TRANSPORT LIST -->
+    <div class="card">
+        <h3><i class="fas fa-list" style="color:var(--green);"></i> Transport Schedule</h3>
+        <div style="overflow-x:auto;">
+        <table class="data-table">
+            <tr>
+                <th>#</th><th>Vehicle</th><th>Event</th><th>Date</th><th>Location</th>
+            </tr>
+        <%
+        Connection con = DBConnection.getConnection();
+        PreparedStatement ps = con.prepareStatement("SELECT * FROM transport ORDER BY id DESC");
+        ResultSet rs = ps.executeQuery();
+        boolean any = false; int idx = 1;
+        while(rs.next()) {
+            any = true;
+        %>
+            <tr>
+                <td><%= idx++ %></td>
+                <td><span class="vehicle-tag"><i class="fas fa-bus"></i> <%= rs.getString("vehicle_name") %></span></td>
+                <td><strong><%= rs.getString("event") %></strong></td>
+                <td><%= rs.getString("date") %></td>
+                <td><i class="fas fa-map-marker-alt" style="color:#d01717;margin-right:4px;"></i><%= rs.getString("location") %></td>
+            </tr>
+        <% } %>
+        <% if(!any) { %><tr><td colspan="5" class="no-data">No transport entries yet.</td></tr><% } %>
+        </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
