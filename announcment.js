@@ -51,3 +51,24 @@ window.addEventListener("scroll", () => {
     }
 
 });
+const images = [
+    "Images/gallery1.jpg",
+    "Images/gallery2.jpg",
+    "Images/gallery3.jpg",
+    "Images/gallery4.jpg"
+];
+
+let current = 0;
+
+function nextImage() {
+
+    current++;
+
+    if (current >= images.length) {
+        current = 0;
+    }
+
+    document.getElementById("galleryImage").src = images[current];
+}
+
+setInterval(nextImage, 3000);
