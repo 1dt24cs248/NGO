@@ -72,3 +72,30 @@ function nextImage() {
 }
 
 setInterval(nextImage, 3000);
+const quotes = [
+
+"Service to Humanity is Service to God.",
+
+"The best way to find yourself is to lose yourself in the service of others.",
+
+"Peace begins with compassion.",
+
+"Together we can make society better.",
+
+"Every small act of kindness matters."
+
+];
+
+let i = 0;
+
+setInterval(() => {
+
+    document.getElementById("quote").innerHTML = quotes[i];
+
+    i++;
+
+    if(i>=quotes.length){
+        i=0;
+    }
+
+},3000);
