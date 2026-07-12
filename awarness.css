@@ -38,3 +38,36 @@ h1{
 .gallery img:hover{
     transform:scale(1.05);
 }
+.cards{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    justify-content:center;
+}
+
+.card{
+    width:280px;
+    background:white;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.2);
+    overflow:hidden;
+    transition:.4s;
+}
+
+.card:hover{
+    transform:translateY(-10px);
+}
+
+.card img{
+    width:100%;
+    height:180px;
+}
+
+.card h3{
+    padding:10px;
+    color:#1b5e20;
+}
+
+.card p{
+    padding:0 10px 15px;
+}
