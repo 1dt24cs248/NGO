@@ -83,3 +83,45 @@ public class FeedbackServlet extends HttpServlet {
         }
     }
 }
+
+package com.ngo.controller;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import com.ngo.util.DBConnection;
+
+@WebServlet("/feedback")
+public class FeedbackServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws IOException {
+
+        try {
+            Connection con = DBConnection.getConnection();
+
+            String name = req.getParameter("name");
+            String message = req.getParameter("message");
+
+            PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO feedback(name, message) VALUES(?, ?)"
+            );
+
+            ps.setString(1, name);
+            ps.setString(2, message);
+
+            int result = ps.executeUpdate();
+
+            if (result > 0)
+                res.sendRedirect("feedback.jsp?success=1");
+            else
+                res.sendRedirect("feedback.jsp?error=1");
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            res.sendRedirect("feedback.jsp?error=1");
+        }
+    }
+}
