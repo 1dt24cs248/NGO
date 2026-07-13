@@ -58,3 +58,71 @@ public class VolunteerServlet extends HttpServlet {
         }
     }
 }
+
+package com.ngo.controller;
+
+import java.io.IOException;
+import java.sql.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+import com.ngo.util.DBConnection;
+
+@WebServlet("/volunteer")
+public class VolunteerServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws IOException {
+
+        String email = (String) req.getSession().getAttribute("visitorEmail");
+
+        if (email == null) {
+            res.sendRedirect("login.jsp");
+            return;
+        }
+
+        String role = req.getParameter("role");
+        String mobile = req.getParameter("mobile");
+        String location = req.getParameter("location");
+
+        try (Connection con = DBConnection.getConnection()) {
+
+            String name = email.substring(0, email.indexOf("@"));
+
+            PreparedStatement ps = con.prepareStatement(
+                    "SELECT name FROM visitors WHERE email=?");
+            ps.setString(1, email);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                name = rs.getString("name");
+            }
+
+            ps = con.prepareStatement(
+                    "SELECT id FROM volunteers WHERE email=?");
+            ps.setString(1, email);
+
+            if (ps.executeQuery().next()) {
+                res.sendRedirect("visitor.jsp?error=already");
+                return;
+            }
+
+            ps = con.prepareStatement(
+                    "INSERT INTO volunteers(name,email,role,mobile,location,status) VALUES(?,?,?,?,?,'PENDING')");
+
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, role);
+            ps.setString(4, mobile);
+            ps.setString(5, location);
+
+            ps.executeUpdate();
+
+            res.sendRedirect("visitor.jsp?success=volunteer");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.sendRedirect("visitor.jsp?error=1");
+        }
+    }
+}
