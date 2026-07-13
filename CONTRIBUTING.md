@@ -2,13 +2,14 @@
 
 Thank you for contributing to the NGO Project!
 
-Follow the steps below to contribute successfully.
+Please follow the steps below to contribute successfully.
 
 ---
 
 # Prerequisites
 
-Install Git:
+## Install Git
+
 https://git-scm.com/downloads
 
 Verify installation:
@@ -75,7 +76,7 @@ cd NGO
 git branch
 ```
 
-Current branch:
+Expected output:
 
 ```text
 * main
@@ -91,9 +92,9 @@ git status
 
 ---
 
-# Step 6: Download Latest Changes
+# Step 6: Download the Latest Changes
 
-Always update before starting work.
+Always update your local repository before starting work.
 
 ```bash
 git pull origin main
@@ -109,6 +110,8 @@ git pull --rebase origin main
 
 # Step 7: Create a New Branch
 
+Create a separate branch for every feature or bug fix.
+
 ```bash
 git checkout -b feature-name
 ```
@@ -123,11 +126,13 @@ git checkout -b donation-page
 
 # Step 8: Switch Branches
 
+Using checkout:
+
 ```bash
 git checkout main
 ```
 
-or
+Using switch (recommended):
 
 ```bash
 git switch main
@@ -137,15 +142,15 @@ git switch main
 
 # Step 9: Make Changes
 
-Edit the project files.
+Edit the required project files.
 
 Example:
 
-- index.html
-- apply.html
-- theme.css
+* index.html
+* apply.html
+* theme.css
 
-Save the files.
+Save all changes.
 
 ---
 
@@ -185,9 +190,11 @@ Example:
 git commit -m "Updated donation page"
 ```
 
+Write meaningful commit messages that clearly describe your changes.
+
 ---
 
-# Step 13: Push Branch
+# Step 13: Push Your Branch
 
 ```bash
 git push origin feature-name
@@ -201,55 +208,53 @@ git push origin donation-page
 
 ---
 
-# Step 14: Create Pull Request
+# Step 14: Create a Pull Request
 
 Go to GitHub.
 
 Open the repository.
 
-Click
+Click:
 
-```
+```text
 Compare & Pull Request
 ```
 
 ↓
 
-Click
+Click:
 
-```
+```text
 Create Pull Request
 ```
 
 ↓
 
-Add title and description.
+Add a title and description.
 
 ↓
 
-Click
+Click:
 
-```
+```text
 Create Pull Request
 ```
 
 ---
 
-# Step 15: Merge Pull Request
+# Step 15: Pull Request Review & Merge
 
-Repository owner:
+The repository owner or maintainer reviews your Pull Request.
 
-Click
+If approved:
 
-```
+```text
 Merge Pull Request
 ```
 
 ↓
 
-Click
-
-```
+```text
 Confirm Merge
 ```
 
@@ -285,6 +290,8 @@ git pull origin main
 
 # Step 18: View Commit History
 
+Complete history:
+
 ```bash
 git log
 ```
@@ -295,7 +302,7 @@ Short history:
 git log --oneline
 ```
 
-Graph:
+Graph view:
 
 ```bash
 git log --graph --decorate --all
@@ -321,6 +328,8 @@ git remote -v
 
 # Step 21: Add Remote
 
+**Note:** Skip this step if you cloned the repository using `git clone`, as the `origin` remote is already configured.
+
 ```bash
 git remote add origin https://github.com/1dt24cs248/NGO.git
 ```
@@ -341,222 +350,3 @@ git remote set-url origin https://github.com/1dt24cs248/NGO.git
 git remote remove origin
 ```
 
----
-
-# Step 24: Merge Branch
-
-```bash
-git checkout main
-```
-
-```bash
-git merge feature-name
-```
-
----
-
-# Step 25: Rebase
-
-```bash
-git pull --rebase origin main
-```
-
-Continue rebase:
-
-```bash
-git add .
-```
-
-```bash
-git rebase --continue
-```
-
-Abort rebase:
-
-```bash
-git rebase --abort
-```
-
----
-
-# Step 26: Resolve Merge Conflict
-
-After editing conflicting files:
-
-```bash
-git add .
-```
-
-```bash
-git commit -m "Resolved merge conflict"
-```
-
----
-
-# Step 27: Abort Merge
-
-```bash
-git merge --abort
-```
-
----
-
-# Step 28: Undo Last Commit
-
-Keep files:
-
-```bash
-git reset --soft HEAD~1
-```
-
-Delete commit completely:
-
-```bash
-git reset --hard HEAD~1
-```
-
----
-
-# Step 29: Revert Commit
-
-```bash
-git revert COMMIT_ID
-```
-
----
-
-# Step 30: Stash Changes
-
-Save work:
-
-```bash
-git stash
-```
-
-View stash:
-
-```bash
-git stash list
-```
-
-Restore:
-
-```bash
-git stash pop
-```
-
----
-
-# Step 31: Tags
-
-Create tag:
-
-```bash
-git tag v1.0
-```
-
-Push tag:
-
-```bash
-git push origin v1.0
-```
-
----
-
-# Step 32: Contributors Workflow
-
-"""Every contributor should follow this order:
-
-```text
-git pull origin main
-        ↓
-git checkout -b feature-name
-        ↓
-Make Changes
-        ↓
-git status
-        ↓
-git add .
-        ↓
-git commit -m "Describe changes"
-        ↓
-git push origin feature-name
-        ↓
-Create Pull Request
-        ↓
-Merge Pull Request
-        ↓
-Delete Branch
-        ↓
-git checkout main
-        ↓
-git pull origin main
-```
-""""
----
-
-# Step 33: Common Errors
-
-## Push Rejected
-
-```bash
-git pull --rebase origin main
-```
-
-Then:
-
-```bash
-git push origin feature-name
-```
-
----
-
-## Merge Conflict
-
-Resolve the conflict.
-
-Then:
-
-```bash
-git add .
-```
-
-```bash
-git commit -m "Resolved merge conflict"
-```
-
-Push:
-
-```bash
-git push origin feature-name
-```
-
----
-
-## Check Git Configuration
-
-```bash
-git config --global --list
-```
-
----
-
-## Repository Structure
-
-```
-NGO
-│
-├── index.html
-├── apply.html
-├── theme.css
-├── announcment.js
-├── Images
-├── README.md
-└── CONTRIBUTING.md
-```
-
----
-
-# Happy Coding!
-
-#Thank you for contributing to the NGO Project.
