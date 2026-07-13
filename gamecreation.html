@@ -79,3 +79,194 @@ box.onclick = function(){
 
 </body>
 </html>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Catch the Box Game</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:linear-gradient(to right,#74ebd5,#ACB6E5);
+    text-align:center;
+}
+
+h1{
+    color:#2c3e50;
+}
+
+#info{
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    font-size:22px;
+    margin:20px;
+    font-weight:bold;
+}
+
+#gameArea{
+    width:700px;
+    height:450px;
+    margin:auto;
+    background:white;
+    border:4px solid #333;
+    position:relative;
+    overflow:hidden;
+}
+
+#box{
+    width:50px;
+    height:50px;
+    background:red;
+    position:absolute;
+    top:100px;
+    left:100px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+button{
+    margin:15px;
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    background:#2c3e50;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#16a085;
+}
+
+#message{
+    font-size:26px;
+    color:red;
+    font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🎮 Catch the Box Game</h1>
+
+<div id="info">
+    <div>Score: <span id="score">0</span></div>
+    <div>Time: <span id="time">30</span>s</div>
+    <div>Lives: <span id="lives">3</span></div>
+    <div>High Score: <span id="high">0</span></div>
+</div>
+
+<button onclick="startGame()">Start Game</button>
+
+<div id="gameArea">
+    <div id="box"></div>
+</div>
+
+<h2 id="message"></h2>
+
+<script>
+
+let score=0;
+let time=30;
+let lives=3;
+let highScore=0;
+let timer;
+
+const box=document.getElementById("box");
+const area=document.getElementById("gameArea");
+
+function randomMove(){
+
+    let x=Math.random()*650;
+    let y=Math.random()*400;
+
+    box.style.left=x+"px";
+    box.style.top=y+"px";
+
+    let color="#"+Math.floor(Math.random()*16777215).toString(16);
+    box.style.background=color;
+}
+
+box.onclick=function(e){
+
+    e.stopPropagation();
+
+    score++;
+    document.getElementById("score").innerHTML=score;
+
+    if(score>highScore){
+        highScore=score;
+        document.getElementById("high").innerHTML=highScore;
+    }
+
+    randomMove();
+}
+
+area.onclick=function(){
+
+    lives--;
+    document.getElementById("lives").innerHTML=lives;
+
+    if(lives==0){
+        endGame();
+    }
+
+}
+
+function startGame(){
+
+    score=0;
+    time=30;
+    lives=3;
+
+    document.getElementById("score").innerHTML=score;
+    document.getElementById("time").innerHTML=time;
+    document.getElementById("lives").innerHTML=lives;
+    document.getElementById("message").innerHTML="";
+
+    randomMove();
+
+    clearInterval(timer);
+
+    timer=setInterval(function(){
+
+        time--;
+        document.getElementById("time").innerHTML=time;
+
+        if(time==0){
+            endGame();
+        }
+
+    },1000);
+
+}
+
+function endGame(){
+
+    clearInterval(timer);
+
+    box.style.display="none";
+
+    document.getElementById("message").innerHTML=
+    "🎉 Game Over! Your Score: "+score+
+    "<br><br><button onclick='restartGame()'>Play Again</button>";
+
+}
+
+function restartGame(){
+
+    box.style.display="block";
+    startGame();
+
+}
+
+</script>
+
+</body>
+</html>
