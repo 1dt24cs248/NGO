@@ -300,3 +300,168 @@ button:hover{
 
 </body>
 </html>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Student Records</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Verdana,sans-serif;
+    background:#eef5ff;
+}
+
+.header{
+    background:#34495e;
+    color:white;
+    text-align:center;
+    padding:18px;
+}
+
+.container{
+    width:88%;
+    margin:30px auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+}
+
+h2{
+    text-align:center;
+    color:#34495e;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#2980b9;
+    color:white;
+    padding:10px;
+}
+
+td{
+    padding:10px;
+    text-align:center;
+    border:1px solid #ddd;
+}
+
+tr:nth-child(even){
+    background:#f4f8fc;
+}
+
+tr:hover{
+    background:#dff1ff;
+}
+
+.status{
+    color:green;
+    font-weight:bold;
+}
+
+button{
+    background:#2980b9;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1f6692;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <h1>University Student Records</h1>
+</div>
+
+<div class="container">
+
+<h2>Student Information</h2>
+
+<table>
+
+<tr>
+    <th>USN</th>
+    <th>Student Name</th>
+    <th>Branch</th>
+    <th>Semester</th>
+    <th>Phone</th>
+    <th>Email</th>
+    <th>Status</th>
+    <th>Option</th>
+</tr>
+
+<tr>
+    <td>1DT24CS011</td>
+    <td>Arjun R</td>
+    <td>CSE</td>
+    <td>5</td>
+    <td>9876501111</td>
+    <td>arjun@gmail.com</td>
+    <td class="status">Present</td>
+    <td><button>Open</button></td>
+</tr>
+
+<tr>
+    <td>1DT24CS012</td>
+    <td>Divya S</td>
+    <td>ISE</td>
+    <td>5</td>
+    <td>9876502222</td>
+    <td>divya@gmail.com</td>
+    <td class="status">Present</td>
+    <td><button>Open</button></td>
+</tr>
+
+<tr>
+    <td>1DT24CS013</td>
+    <td>Kiran M</td>
+    <td>ECE</td>
+    <td>5</td>
+    <td>9876503333</td>
+    <td>kiran@gmail.com</td>
+    <td class="status">Present</td>
+    <td><button>Open</button></td>
+</tr>
+
+<tr>
+    <td>1DT24CS014</td>
+    <td>Nisha P</td>
+    <td>AIML</td>
+    <td>5</td>
+    <td>9876504444</td>
+    <td>nisha@gmail.com</td>
+    <td class="status">Present</td>
+    <td><button>Open</button></td>
+</tr>
+
+<tr>
+    <td>1DT24CS015</td>
+    <td>Rohit K</td>
+    <td>CSE</td>
+    <td>5</td>
+    <td>9876505555</td>
+    <td>rohit@gmail.com</td>
+    <td class="status">Present</td>
+    <td><button>Open</button></td>
+</tr>
+
+</table>
+
+</div>
+
+</body>
+</html>
