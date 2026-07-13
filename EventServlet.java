@@ -39,3 +39,39 @@ public class EventServlet extends HttpServlet {
         }
     }
 }
+
+package com.ngo.controller;
+
+import java.io.IOException;
+import java.sql.*;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+
+import com.ngo.util.DBConnection;
+
+@WebServlet("/event")
+public class EventServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+            throws IOException {
+
+        try (Connection con = DBConnection.getConnection()) {
+
+            PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO events VALUES(NULL,?,?,?)");
+
+            ps.setString(1, req.getParameter("name"));
+            ps.setString(2, req.getParameter("date"));
+            ps.setString(3, req.getParameter("location"));
+
+            ps.executeUpdate();
+
+            res.sendRedirect("events.jsp?success=1");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.sendRedirect("events.jsp?error=1");
+        }
+    }
+}
