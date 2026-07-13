@@ -150,3 +150,57 @@ if (admin == null) {
 
 </body>
 </html>
+
+<div class="card">
+    <h3><i class="fas fa-network-wired" style="color:var(--green);"></i> Partners</h3>
+
+    <div class="partners-grid">
+    <%
+    Connection con = DBConnection.getConnection();
+    PreparedStatement ps = con.prepareStatement("SELECT * FROM partners ORDER BY id DESC");
+    ResultSet rs = ps.executeQuery();
+
+    boolean any = false;
+
+    while(rs.next()) {
+        any = true;
+
+        String type = rs.getString("type");
+        String icon = "🤝";
+
+        if("NGO".equals(type))
+            icon = "🌱";
+        else if("Corporate Donor".equals(type))
+            icon = "🏢";
+        else if("Government".equals(type))
+            icon = "🏛️";
+        else if("Educational Institution".equals(type))
+            icon = "📚";
+    %>
+
+        <div class="partner-card">
+            <div class="pc-icon"><%=icon%></div>
+            <h4><%=rs.getString("name")%></h4>
+            <span class="type-tag"><%=type%></span>
+            <div class="contact">
+                <i class="fas fa-phone"></i>
+                <%=rs.getString("contact")%>
+            </div>
+        </div>
+
+    <%
+    }
+
+    rs.close();
+    ps.close();
+    con.close();
+
+    if(!any){
+    %>
+
+        <div class="no-data">No partners available.</div>
+
+    <% } %>
+
+    </div>
+</div>
