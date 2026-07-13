@@ -334,3 +334,66 @@ body { background: var(--light-bg); font-family: 'Segoe UI', sans-serif; }
 .shadow:hover{
     box-shadow:0 10px 20px rgba(0,0,0,.3);
 }
+
+/* ===========================
+   GLOBAL STYLES
+=========================== */
+
+:root{
+    --primary:#4f46e5;
+    --primary-dark:#3730a3;
+    --secondary:#7c3aed;
+    --accent:#f59e0b;
+    --success:#10b981;
+    --danger:#ef4444;
+    --warning:#f59e0b;
+    --dark:#1e1b4b;
+    --light-bg:#f8fafc;
+    --card-shadow:0 4px 24px rgba(79,70,229,.1);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    background:var(--light-bg);
+    font-family:'Poppins','Segoe UI',sans-serif;
+}
+
+/* ===========================
+   COMMON COMPONENTS
+=========================== */
+
+.card{
+    background:#fff;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+    transition:.3s ease;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 10px 20px rgba(0,0,0,.18);
+}
+
+.btn{
+    background:#1a6b3a;
+    color:#fff;
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.3s ease;
+}
+
+.btn:hover{
+    background:#f4a022;
+}
