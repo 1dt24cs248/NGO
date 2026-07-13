@@ -1,0 +1,152 @@
+<%@ page import="java.sql.*" %>
+<%@ page import="com.ngo.util.DBConnection" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+String admin = (String) session.getAttribute("admin");
+if (admin == null) {
+    response.sendRedirect(request.getContextPath() + "/adminLogin.jsp");
+    return;
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partners – HaritSeva Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root { --green:#1a6b3a; --accent:#f4a022; --dark:#0f2419; --light:#f0f7f2; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:#f4f6f4; min-height:100vh; }
+
+    .topbar { background:var(--dark); color:white; padding:18px 6%; display:flex; justify-content:space-between; align-items:center; }
+    .topbar-logo { font-family:'DM Serif Display',serif; font-size:20px; color:var(--accent); display:flex; align-items:center; gap:10px; }
+    .topbar-right { display:flex; gap:14px; }
+    .topbar-right a { color:#bbb; text-decoration:none; font-size:14px; font-weight:600; padding:8px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); transition:all 0.3s; }
+    .topbar-right a:hover { background:rgba(255,255,255,0.1); color:white; }
+    .topbar-right a.back { background:var(--green); color:white; border-color:var(--green); }
+
+    .main { max-width:900px; margin:40px auto; padding:0 20px; }
+    .page-title { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--dark); margin-bottom:6px; }
+    .page-sub { color:#888; font-size:14px; margin-bottom:30px; }
+
+    .card { background:white; border-radius:20px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:28px; }
+    .card h3 { font-family:'DM Serif Display',serif; font-size:1.2rem; color:var(--dark); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:14px; align-items:flex-end; }
+    .fg label { display:block; font-size:12px; font-weight:700; color:#555; margin-bottom:7px; text-transform:uppercase; letter-spacing:1px; }
+    .fg input, .fg select {
+        width:100%; padding:12px 14px; border:2px solid #e0e0e0;
+        border-radius:10px; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.3s;
+    }
+    .fg input:focus, .fg select:focus { border-color:var(--green); }
+    .add-btn { background:var(--green); color:white; border:none; padding:12px 22px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.3s; white-space:nowrap; }
+    .add-btn:hover { background:#2d9e58; }
+
+    .alert-success { background:#f0fff4; border:1px solid #86efac; color:#166534; padding:14px 18px; border-radius:12px; margin-bottom:20px; font-size:14px; }
+
+    /* PARTNER CARDS GRID */
+    .partners-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+    .partner-card {
+        background:var(--light); border-radius:16px; padding:24px;
+        border-top:4px solid var(--green); transition:transform 0.3s;
+    }
+    .partner-card:hover { transform:translateY(-4px); }
+    .partner-card .pc-icon { font-size:2rem; margin-bottom:12px; }
+    .partner-card h4 { color:var(--dark); font-size:16px; font-weight:700; margin-bottom:6px; }
+    .type-tag { display:inline-block; background:white; color:var(--green); padding:3px 12px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:10px; }
+    .partner-card .contact { color:#666; font-size:13px; display:flex; align-items:center; gap:6px; }
+
+    .no-data { text-align:center; padding:40px; color:#aaa; }
+
+    @media(max-width:768px) { .form-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-logo"><i class="fas fa-leaf"></i> HaritSeva Admin</div>
+    <div class="topbar-right">
+        <a href="admin.jsp" class="back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="<%=request.getContextPath()%>/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="main">
+    <div class="page-title">🤝 Partner Organizations</div>
+    <p class="page-sub">Manage NGO partnerships, donors, and collaborating organizations</p>
+
+    <% if(request.getParameter("success") != null) { %>
+        <div class="alert-success"><i class="fas fa-check-circle"></i> Partner added successfully!</div>
+    <% } %>
+
+    <!-- ADD PARTNER FORM -->
+    <div class="card">
+        <h3><i class="fas fa-handshake" style="color:var(--green);"></i> Add New Partner</h3>
+        <form action="<%=request.getContextPath()%>/partner" method="post">
+            <div class="form-grid">
+                <div class="fg">
+                    <label>Organization Name</label>
+                    <input type="text" name="name" placeholder="e.g. Green Earth Foundation" required>
+                </div>
+                <div class="fg">
+                    <label>Type</label>
+                    <select name="type" required>
+                        <option value="">Select type</option>
+                        <option value="NGO">NGO</option>
+                        <option value="Corporate Donor">Corporate Donor</option>
+                        <option value="Government">Government</option>
+                        <option value="Educational Institution">Educational Institution</option>
+                        <option value="Individual Donor">Individual Donor</option>
+                        <option value="Clean Energy Partner">Clean Energy Partner</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Contact Info</label>
+                    <input type="text" name="contact" placeholder="Email or Phone" required>
+                </div>
+                <button type="submit" class="add-btn"><i class="fas fa-plus"></i> Add</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- PARTNERS GRID -->
+    <div class="card">
+        <h3><i class="fas fa-network-wired" style="color:var(--green);"></i> Our Partners</h3>
+        <div class="partners-grid">
+        <%
+        Connection con = DBConnection.getConnection();
+        PreparedStatement ps = con.prepareStatement("SELECT * FROM partners ORDER BY id DESC");
+        ResultSet rs = ps.executeQuery();
+        boolean any = false;
+        String[] icons = {"🏢","🌱","🏛️","📚","👤","☀️"};
+        int iconIdx = 0;
+        while(rs.next()) {
+            any = true;
+            String type = rs.getString("type");
+            String icon = "🤝";
+            if(type != null) {
+                if(type.contains("NGO")) icon = "🌱";
+                else if(type.contains("Corporate")) icon = "🏢";
+                else if(type.contains("Government")) icon = "🏛️";
+                else if(type.contains("Educational")) icon = "📚";
+                else if(type.contains("Individual")) icon = "👤";
+                else if(type.contains("Clean Energy")) icon = "☀️";
+            }
+        %>
+            <div class="partner-card">
+                <div class="pc-icon"><%= icon %></div>
+                <h4><%= rs.getString("name") %></h4>
+                <span class="type-tag"><%= type %></span>
+                <div class="contact"><i class="fas fa-phone"></i> <%= rs.getString("contact") %></div>
+            </div>
+        <% } %>
+        <% if(!any) { %><div class="no-data">No partners added yet.</div><% } %>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
